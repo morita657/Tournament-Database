@@ -11,18 +11,14 @@
 -- name is players' name,
 -- wins is the number of the matches players won
 -- matches is the number of matches players played
--- CREATE TABLE tournament (
---   id SERIAL,
---   name TEXT,-- In this case, name means players' full name
---   wins integer,--
---   matches integer--
--- );
+
+DROP DATABASE IF EXISTS tournament;
+CREATE DATABASE tournament;
+\c tournament
 
 CREATE TABLE players (
   player_id SERIAL PRIMARY KEY,
-  name text,
-  wins integer,
-  matches integer
+  name text
 );
 
 
@@ -33,10 +29,3 @@ CREATE TABLE match (
   winner_id integer REFERENCES players(player_id),
   loser_id integer REFERENCES players(player_id)
 );
-
--- CREATE TABLE swiss_paring {
---   id1,
---   name1,
---   id2,
---   name2
--- }

@@ -17,7 +17,7 @@ def deleteMatches():
     cur = db.cursor()
     cur.execute("DELETE FROM match;")
     # Delete the history of players table
-    cur.execute("UPDATE players SET wins = 0, matches = 0;")
+    # cur.execute("UPDATE players SET wins = 0, matches = 0;")
     db.commit()
     db.close()
 
@@ -52,7 +52,8 @@ def registerPlayer(name):
     """
     db = connect()
     cur = db.cursor()
-    cur.execute("INSERT INTO players (name, wins, matches) VALUES (%s, %s, %s);", (str(name), 0, 0))
+    cur.execute("INSERT INTO players (name) VALUES (%s);", (str(name),))
+    # print "Come on: ", cur
     db.commit()
     db.close()
 
@@ -71,7 +72,38 @@ def playerStandings():
     """
     db = connect()
     cur = db.cursor()
-    cur.execute("SELECT player_id, name, wins, matches FROM players ORDER BY wins;")
+    cur.execute("SELECT players.player_id, players.name FROM players;")
+    cur.execute("SELECT players.player_id, count(match.match_id) AS wins FROM players JOIN match \
+                 ON players.player_id = match.winner_id \
+                 GROUP BY players.player_id;")
+
+    cur.execute("SELECT players.player_id, count(match.match_id) AS wins \
+                 from players LEFT OUTER JOIN match \
+                 ON players.player_id != match.loser_id \
+                 GROUP BY players.player_id;")
+
+    cur.execute("SELECT players.player_id, count(match.match_id) AS played \
+                 from players LEFT OUTER JOIN match \
+                 ON players.player_id != match.winner_id OR players.player_id != match.loser_id \
+                 GROUP BY players.player_id;")
+
+    cur.execute("CREATE VIEW view_wins AS \
+                 SELECT players.player_id, count(match.match_id) AS wins \
+                 FROM players LEFT OUTER JOIN match \
+                 ON players.player_id = match.winner_id \
+                 GROUP BY players.player_id;")
+
+    cur.execute("CREATE VIEW view_played AS \
+                 SELECT players.player_id, count(match.match_id) AS played \
+                 FROM players LEFT OUTER JOIN match \
+                 ON players.player_id = match.winner_id OR players.player_id = match.loser_id \
+                 GROUP BY players.player_id;")
+
+    cur.execute("SELECT p.player_id, p.name, vw.wins, vp.played \
+                 FROM players AS p \
+                 INNER JOIN view_wins AS vw ON p.player_id = vw.player_id \
+                 INNER JOIN view_played AS vp ON p.player_id = vp.player_id \
+                 ORDER BY vw.wins;")
     result = cur.fetchall()
     db.close()
     return result
@@ -87,8 +119,6 @@ def reportMatch(winner, loser):
     db = connect()
     cur = db.cursor()
     cur.execute("INSERT INTO match (winner_id, loser_id) VALUES (%s, %s);", (winner, loser,))
-    cur.execute("UPDATE players SET wins = wins+1, matches = matches+1 WHERE player_id = (%s);", (winner,))
-    cur.execute("UPDATE players SET matches = matches+1 WHERE player_id = (%s);", (loser,))
     db.commit()
     db.close()
 
@@ -110,26 +140,14 @@ def swissPairings():
     """
     db = connect()
     cur = db.cursor()
-    cur.execute("SELECT player_id, name, wins FROM players")
-    cur.execute("CREATE OR REPLACE VIEW updated_match AS \
-                SELECT  player_id, \
-                        name, \
-                        COUNT(CASE WHEN players.player_id = match.winner_id THEN 1 ELSE 0 END) AS number_of_wins, \
-                        COUNT(matches) AS match_count \
-                FROM players LEFT JOIN match \
-                ON players.player_id = match.winner_id \
-                GROUP BY player_id \
-                ORDER BY wins;")
-    cur.execute("SELECT player_id, name FROM updated_match;")
-    records = cur.fetchall()
+    records = playerStandings()
     # Make list of tuples
     c = 0
+    # I used the following code which was written by PhilipCoach in Discussion Forum.
+    # https://discussions.udacity.com/t/idiomatic-code-for-swisspairings-function/17210
     pairs = []
-    while c < len(records):
-        pairs.append(records[c]+records[c+1])
-        c += 2
-
+    for player1, player2 in zip(records[0::2], records[1::2]):
+        pairs.append((player1[0], player1[1], player2[0], player2[1]))
     db.commit()
     db.close()
-    print "pairs: ", pairs
     return pairs
