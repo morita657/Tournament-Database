@@ -10,14 +10,14 @@ This project requires Python 2.X (2.7.x is expected) and PostgreSQL 9.3 or lates
 [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads) are required to run SQL database server and web app. You need to install them on your machine.
 
 ## How to run
-Download or clone repository on you machine.
-Bring the project directory under the vagrant directory.
-Start the virtual machine using `vagrant up` command.
-After that, run `vagrant ssh` to log in to your VM.
-Access the database using `psql` command and run SQL statements.
-Test tournament.py running `python tournament_test.py` command.
-Check that the last line of the output from this command is 'Success!  All tests pass!'
-Shutdown the VM with `CTRL + D`.
+1. Download or clone repository on you machine.
+2. Bring the project directory under the vagrant directory.
+3. Start the virtual machine using `vagrant up` command.
+4. After that, run `vagrant ssh` to log in to your VM.
+5. Access the database using `psql` command and run SQL statements.
+6. Test tournament.py running `python tournament_test.py` command.
+7. Check that the last line of the output from this command is 'Success!  All tests pass!'
+8. Shutdown the VM with `CTRL + D`.
 
 ## Files
 This project is comprised of 3 files:
