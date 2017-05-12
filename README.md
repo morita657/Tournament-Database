@@ -16,6 +16,7 @@ Start the virtual machine using `vagrant up` command.
 After that, run `vagrant ssh` to log in to your VM.
 Access the database using `psql` command and run SQL statements.
 Test tournament.py running `python tournament_test.py` command.
+Check that the last line of the output from this command is 'Success!  All tests pass!'
 Shutdown the VM with `CTRL + D`.
 
 ## Files
